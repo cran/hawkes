@@ -1,0 +1,12 @@
+87699f076c7dd0746fdbdbb91bfcb12a *DESCRIPTION
+cfdfdc943ebf036b860c086fdd317689 *NAMESPACE
+331c83f732fcadbfc9a212ea4d23fc38 *R/RcppExports.R
+abae3946d45f661dfb1865265441bbaa *man/jumpAutocorrelation.Rd
+cdac361c48c0501f6d235e02d7ddff27 *man/jumpMean.Rd
+8f968b2fe3b9c550a486e8f8e7b9f977 *man/jumpVariance.Rd
+65e9d771f16b3996b4a66f3902554a79 *man/simulateHawkes.Rd
+489b262d4f81136a32f0bb09936fe53e *src/Makevars
+a73031cbe7d6aaf0bd22e20f6526977d *src/Makevars.win
+761faddf025a2ca08fbd376a9079dcf4 *src/RcppExports.cpp
+51e24cfd3cb928f4f19b91309a651526 *src/hawkes.cpp
+786b859a90791a4c26333b18ac770750 *src/hawkes_utils.h
