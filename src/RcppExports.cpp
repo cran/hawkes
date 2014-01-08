@@ -79,3 +79,21 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// likelihoodHawkes
+double likelihoodHawkes(SEXP lambda0, SEXP alpha, SEXP beta, SEXP history);
+RcppExport SEXP hawkes_likelihoodHawkes(SEXP lambda0SEXP, SEXP alphaSEXP, SEXP betaSEXP, SEXP historySEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< SEXP >::type lambda0(lambda0SEXP );
+        Rcpp::traits::input_parameter< SEXP >::type alpha(alphaSEXP );
+        Rcpp::traits::input_parameter< SEXP >::type beta(betaSEXP );
+        Rcpp::traits::input_parameter< SEXP >::type history(historySEXP );
+        double __result = likelihoodHawkes(lambda0, alpha, beta, history);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}

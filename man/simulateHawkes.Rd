@@ -32,16 +32,16 @@ On Lewis simulation method for point processes.
 
 \examples{
 #One dimensional Hawkes process
-lambda0<-0.02
-alpha<-0.05
-beta<-0.06
+lambda0<-0.2
+alpha<-0.5
+beta<-0.7
 horizon<-3600#one hour
 h<-simulateHawkes(lambda0,alpha,beta,horizon)
 
 #Multivariate Hawkes process
-lambda0<-c(0.02,0.02)
-alpha<-matrix(c(0.05,0,0,0.05),byrow=TRUE,nrow=2)
-beta<-c(0.06,0.06)
+lambda0<-c(0.2,0.2)
+alpha<-matrix(c(0.5,0,0,0.5),byrow=TRUE,nrow=2)
+beta<-c(0.7,0.7)
 horizon<-3600#one hour
 h<-simulateHawkes(lambda0,alpha,beta,horizon)
 }

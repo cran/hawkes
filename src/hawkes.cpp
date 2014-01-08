@@ -2,21 +2,21 @@
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
-
-
+ 
+ 
 int getDimension(SEXP lambda0){
   Rcpp::NumericVector lambda0_internal(lambda0);  
   return lambda0_internal.size();
 }
-
-int attribute(double alea, double t, double I_star,const arma::vec& m_lambda)
+ 
+int attribute(double alea, double I_star,const arma::vec& m_lambda)
 {
   int index = 0;
-	double cumul = m_lambda[0];
+	double cumul = m_lambda(0);
 	while (alea > (cumul / I_star))
 	{
 		index = index + 1;
-		cumul = cumul + m_lambda[index];
+		cumul = cumul + m_lambda(index);
 	}
 	return (index);
 }
@@ -24,6 +24,9 @@ int attribute(double alea, double t, double I_star,const arma::vec& m_lambda)
 // [[Rcpp::export]]
 std::vector<std::vector<double> > simulateHawkes(SEXP lambda0,SEXP alpha,SEXP beta,SEXP horizon)
 {
+  RNGScope scope;
+  Rcpp::NumericVector tempUnif(1);
+  
   int dimension = getDimension(lambda0);
   double m_horizon = as<double>(horizon);
   
@@ -45,7 +48,8 @@ std::vector<std::vector<double> > simulateHawkes(SEXP lambda0,SEXP alpha,SEXP be
     double lambda_star = m_lambda0;
 	  double dlambda = 0.0,t=0;
 	  //first event
-	  double U = arma::randu(1)[0];
+    tempUnif = runif(1);
+	  double U = tempUnif(0);
 	  double s = -(1.0 / lambda_star) * log(U);
 	  if (s <= m_horizon)
 	  {
@@ -61,13 +65,15 @@ std::vector<std::vector<double> > simulateHawkes(SEXP lambda0,SEXP alpha,SEXP be
   	while (true)
   	{
   		lambda_star = m_lambda0+dlambda*exp(-m_beta*(s-t));
-  		U = arma::randu(1)[0];
+      tempUnif = runif(1);
+  		U = tempUnif(0);
   		s = s - (1.0 / lambda_star) * log(U);
   		if (s > m_horizon)
   		{
   			return (history);
   		}
-  		double D = arma::randu(1)[0];
+      tempUnif = runif(1);
+  		double D = tempUnif(0);
   		if (D <= (m_lambda0+dlambda*exp(-m_beta*(s-t))) / lambda_star)
   		{
   			history[0].push_back(s);
@@ -77,7 +83,7 @@ std::vector<std::vector<double> > simulateHawkes(SEXP lambda0,SEXP alpha,SEXP be
   	}
   }
   else{
-    arma::mat dlambda(dimension,dimension);
+    arma::mat dlambda(dimension,dimension,arma::fill::zeros);
     Rcpp::NumericVector lambda0_internal(lambda0);
     Rcpp::NumericMatrix alpha_internal(alpha);
     Rcpp::NumericVector beta_internal(beta);
@@ -89,38 +95,40 @@ std::vector<std::vector<double> > simulateHawkes(SEXP lambda0,SEXP alpha,SEXP be
     arma::vec m_lambda(dimension);
     
     
-    /* TODO : uncomment this when the new Rcpp Armadillo will be integrated
+    
     arma::mat beta_minus_alpha = m_beta_matrix- m_alpha;
     arma::cx_vec eigval=arma::eig_gen(beta_minus_alpha);
     arma::vec eigval_real=real(eigval);
     if(eigval_real.min()<0){
       stop("Unstable. beta - alpha must have eigenvalues with strictly positive real part.");
-    }*/
+    }
     
   	double lambda_star = 0.0;
-  	
+	  
   	double t=0;
   	for (int i = 0; i < dimension; i++)
   	{
-  		lambda_star += m_lambda0[i];
-  		m_lambda[i] = m_lambda0[i];
+  		lambda_star += m_lambda0(i);
+  		m_lambda(i) = m_lambda0(i);
   	}
     
   	//first event
-  	double U = arma::randu(1)[0];
+    tempUnif = runif(1);
+  	double U = tempUnif(0);
   	double s = -(1.0 / lambda_star) * log(U);
     
     
   	if (s <= m_horizon)
   	{
-  		double D = arma::randu(1)[0];
-  		int n0 = attribute(D, 0, lambda_star,m_lambda);
+        tempUnif = runif(1);
+  		double D = tempUnif(0);
+  		int n0 = attribute(D, lambda_star,m_lambda);
   		history[n0].push_back(s);
   
   		for (int i=0;i<dimension;i++)
   		{
   			dlambda(i,n0) = m_alpha(i,n0);
-  			m_lambda[i] = m_lambda0[i]+m_alpha(i,n0);
+  			m_lambda(i) = m_lambda0(i)+m_alpha(i,n0);
   		}
   	}
   	else
@@ -132,15 +140,17 @@ std::vector<std::vector<double> > simulateHawkes(SEXP lambda0,SEXP alpha,SEXP be
   	lambda_star = 0;
   	for (int i = 0; i < dimension; i++)
   	{
-  		lambda_star = lambda_star + m_lambda[i];
+  		lambda_star = lambda_star + m_lambda(i);
   	}
-  	while (TRUE)
+  	while (true)
   	{
-  		U = arma::randu(1)[0];
+        tempUnif = runif(1);
+  		U = tempUnif(0);
   		s = s - (1.0 / lambda_star) * log(U);
   		if (s <= m_horizon)
   		{
-  			double D = arma::randu(1)[0];
+            tempUnif = runif(1);
+  			double D = tempUnif(0);
   			double I_M = 0.0;
   			for (int i = 0; i < dimension; i++)
   			{
@@ -149,12 +159,12 @@ std::vector<std::vector<double> > simulateHawkes(SEXP lambda0,SEXP alpha,SEXP be
   				{
   					dl += dlambda(i,j)*exp(-m_beta(i)*(s-t));
   				}
-  				m_lambda[i] = m_lambda0[i]+dl;
-  				I_M = I_M + m_lambda[i];
+  				m_lambda[i] = m_lambda0(i)+dl;
+  				I_M = I_M + m_lambda(i);
   			}
   			if (D <= (I_M / lambda_star))
   			{
-  				int n0 = attribute(D, s, lambda_star,m_lambda);
+  				int n0 = attribute(D, lambda_star,m_lambda);
   				history[n0].push_back(s);
   				lambda_star=0.0;
   				for (int i=0;i<dimension;i++)
@@ -169,7 +179,7 @@ std::vector<std::vector<double> > simulateHawkes(SEXP lambda0,SEXP alpha,SEXP be
   						}
   						dl +=dlambda(i,j);
   					}
-  					lambda_star+= m_lambda0[i]+dl;
+  					lambda_star+= m_lambda0(i)+dl;
   				}
   				t=s;
   			}
@@ -320,3 +330,141 @@ arma::mat jumpAutocorrelation(SEXP lambda0,SEXP alpha,SEXP beta,SEXP tau,SEXP la
   }
 }
 
+// [[Rcpp::export]]
+double  likelihoodHawkes(SEXP lambda0,SEXP alpha,SEXP beta,SEXP history)
+{
+  int dimension = getDimension(lambda0);
+  
+  
+  double res = 0;
+  
+  if (dimension == 1)
+  {
+    double m_lambda0 = as<double>(lambda0);
+    double m_alpha = as<double>(alpha);
+    double m_beta = as<double>(beta);
+    Rcpp::NumericVector m_history(history);
+    double m_T = m_history[m_history.size()-1];
+    
+    if(m_beta<m_alpha){
+      stop("Unstable. You must have alpha < beta");
+    }
+    double *A = new double[m_history.size()];
+    A[0] = 0;
+  	for (int i = 1; i < m_history.size(); i++)
+  	{
+  		A[i] = (1.0+A[i-1])*exp(-m_beta * (m_history[i] - m_history[i-1])) ;
+  	}
+
+  	double sum = 0.0;
+  	for (int i = 0; i < m_history.size(); i++)
+  	{
+  		sum = sum+   (1 - exp(-m_beta * (m_T - m_history[i]))) ;
+  	}
+  	sum = (m_alpha / m_beta) * sum;
+  	res = - m_lambda0 * m_T - sum;
+  	
+  	
+  	for (int i = 0; i < m_history.size(); i++)
+  	{
+  		res = res + log(m_lambda0+m_alpha*A[i]);
+  	}
+  	delete [] A;
+	
+	  return (-res);
+  }else{
+    Rcpp::NumericVector lambda0_internal(lambda0);
+    Rcpp::NumericMatrix alpha_internal(alpha);
+    Rcpp::NumericVector beta_internal(beta);
+    arma::vec m_lambda0(lambda0_internal.begin(),dimension,false);
+    arma::mat m_alpha(alpha_internal.begin(),dimension,dimension,false);
+    arma::vec m_beta(beta_internal.begin(),dimension,false);
+    Rcpp::List m_history(history);
+    
+    double m_T = 0;
+    for (int n = 0; n < dimension; n++)
+    {
+  	  m_T = std::max(as<Rcpp::NumericVector>(m_history[n])[as<Rcpp::NumericVector>(m_history[n]).size()-1],m_T);
+  	}
+    
+    for (int m = 0; m < dimension; m++)
+  	{
+  		double sum = 0.0;
+     
+      double *Rdiag = new double[as<Rcpp::NumericVector>(m_history[m]).size()];
+    	double *RNonDiag = new double[as<Rcpp::NumericVector>(m_history[m]).size()];
+	    int * index=new int[dimension];
+    	for (int n = 0; n < dimension; n++)
+    	{
+    		index[n] = 0;
+    	}
+    	Rdiag[0] = 0;
+    	RNonDiag[0] = 0;
+    	for (int i = 1; i <as<Rcpp::NumericVector>(m_history[m]).size(); i++)
+    	{
+    		Rdiag[i] = (1.0+Rdiag[i-1])*exp(-m_beta(m) * (as<Rcpp::NumericVector>(m_history[m])[i] -as<Rcpp::NumericVector>(m_history[m])[i-1])) ;
+    	}
+    	for (int i = 1; i < as<Rcpp::NumericVector>(m_history[m]).size(); i++)
+    	{
+    		RNonDiag[i] = (RNonDiag[i-1])*exp(-m_beta(m) * (as<Rcpp::NumericVector>(m_history[m])[i] - as<Rcpp::NumericVector>(m_history[m])[i-1])) ;
+    		for (int n = 0; n < dimension; n++)
+    		{
+    			if (m==n)
+    			{
+    				continue;
+    			}
+    			for (int k = index[n]; k < as<Rcpp::NumericVector>(m_history[n]).size(); k++)
+    			{
+    				if (as<Rcpp::NumericVector>(m_history[n])[k] >= as<Rcpp::NumericVector>(m_history[m])[i-1])
+    				{
+    					if (as<Rcpp::NumericVector>(m_history[n])[k] < as<Rcpp::NumericVector>(m_history[m])[i])
+    					{
+    						RNonDiag[i] += exp(-m_beta(m) * (as<Rcpp::NumericVector>(m_history[m])[i] - as<Rcpp::NumericVector>(m_history[n])[k]));
+    					}
+    					else
+    					{
+    						index[n] = k;
+    						break;
+    					}
+    				}
+    			}
+    		}
+    	}
+    	for (int n = 0; n < dimension; n++)
+    	{
+    		for (int k = 0; k < as<Rcpp::NumericVector>(m_history[n]).size(); k++)
+    		{
+    			sum = sum + (m_alpha(m,n) / m_beta(m)) *
+    				(1-exp(-m_beta(m) * (m_T - as<Rcpp::NumericVector>(m_history[n])[k])));//Beta diagonal
+    
+    		}
+    	}
+
+  	  res =  - m_lambda0(m) * m_T - sum;
+  
+  
+    	for (int i = 0; i < as<Rcpp::NumericVector>(m_history[m]).size(); i++)
+    	{
+    		sum = m_lambda0(m);
+    		for (int n = 0; n < dimension; n++)		
+    		{
+    
+    			if(m==n)
+    			{
+    				sum = sum+m_alpha(m,n)*Rdiag[i];
+    			}
+    			else
+    			{
+    				sum = sum +m_alpha(m,n)*RNonDiag[i];
+    			}
+    		}
+    		res = res+log(sum);
+    	}
+    	delete[] Rdiag;
+    	delete[] RNonDiag;
+    	delete[] index;
+    }
+   
+	  return (-res);
+  }
+}

@@ -17,3 +17,7 @@ jumpAutocorrelation <- function(lambda0, alpha, beta, tau, lag) {
     .Call('hawkes_jumpAutocorrelation', PACKAGE = 'hawkes', lambda0, alpha, beta, tau, lag)
 }
 
+likelihoodHawkes <- function(lambda0, alpha, beta, history) {
+    .Call('hawkes_likelihoodHawkes', PACKAGE = 'hawkes', lambda0, alpha, beta, history)
+}
+
