@@ -197,3 +197,12 @@ arma::mat grandLambdaInfini(arma::vec& lambda,arma::mat& alpha,arma::mat& beta,d
   
 	return (res);
 }
+void checkStability(arma::mat& m_beta_matrix,arma::mat& m_alpha){
+  arma::mat beta_minus_alpha = m_beta_matrix- m_alpha;
+  arma::cx_vec eigval=arma::eig_gen(beta_minus_alpha);
+  arma::vec eigval_real=real(eigval);
+  
+  if(eigval_real.min()<0){
+    stop("Unstable. beta - alpha must have eigenvalues with strictly positive real part.");
+  }
+}

@@ -24,7 +24,7 @@ Returns a matrix containing the variance of the number of jumps of every process
 \references{
 Jose Da Fonseca and Riadh Zaatour
 Hawkes Process : Fast Calibration, Application to Trade Clustering and Diffusive Limit.
-\emph{Journal of Futures Markets}, \bold{2013}
+\emph{Journal of Futures Markets}, Volume 34, Issue 6, pages 497-606, June 2014.
 
 Jose Da Fonseca and Riadh Zaatour
 Clustering and Mean Reversion in Hawkes Microstructure Models.
